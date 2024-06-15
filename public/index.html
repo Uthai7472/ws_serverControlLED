@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ESP8266 WebSocket Demo</title>
+</head>
+<body>
+  <h1>ESP8266 WebSocket Data (index.html)</h1>
+  <div id="data"></div>
+
+  <script>
+    const ws = new WebSocket('ws://localhost:3000');
+
+    ws.onmessage = function(event) {
+      if (event.data instanceof Blob) {
+        const reader = new FileReader();
+        reader.onload = function() {
+          const dataDiv = document.getElementById('data');
+          dataDiv.innerHTML = reader.result;
+        };
+        reader.readAsText(event.data);
+      } else {
+        const dataDiv = document.getElementById('data');
+        dataDiv.innerHTML = event.data;
+      }
+    };
+
+    ws.onopen = function() {
+      console.log('WebSocket connection opened');
+    };
+
+    ws.onclose = function() {
+      console.log('WebSocket connection closed');
+    };
+
+    ws.onerror = function(error) {
+      console.log('WebSocket error: ' + error);
+    };
+  </script>
+</body>
+</html>

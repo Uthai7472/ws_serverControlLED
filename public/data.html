@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ESP8266 LED Control</title>
+  <style>
+    button {
+      font-size: 24px;
+      padding: 10px;
+      margin: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>ESP8266 LED Control</h1>
+  <button id="btnOn">Turn LED ON</button>
+  <button id="btnOff">Turn LED OFF</button>
+
+  <script>
+    const ws = new WebSocket('ws://192.168.1.105:3000/data'); // Replace with your server's IP address
+
+    ws.onopen = function() {
+      console.log('WebSocket connection opened');
+    };
+
+    ws.onclose = function() {
+      console.log('WebSocket connection closed');
+    };
+
+    ws.onerror = function(error) {
+      console.error('WebSocket error: ', error);
+    };
+
+    document.getElementById('btnOn').addEventListener('click', function() {
+      ws.send('on');
+    });
+
+    document.getElementById('btnOff').addEventListener('click', function() {
+      ws.send('off');
+    });
+  </script>
+</body>
+</html>

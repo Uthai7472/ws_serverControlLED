@@ -8,7 +8,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
     cors: {
-        origin: "http://localhost:5173", // React development server URL
+        origin: "*", // React development server URL
         methods: ["GET", "POST"]
     }
 });

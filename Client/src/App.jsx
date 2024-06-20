@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import socketIOClient from 'socket.io-client';
 
-const ENDPOINT = "http://localhost:4000";  // Ensure this matches your Node.js server URL
+const ENDPOINT = "https://server-controlled.onrender.com";  // Ensure this matches your Node.js server URL
 
 function App() {
     const [ledState, setLedState] = useState(false);

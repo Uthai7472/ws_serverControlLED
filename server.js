@@ -8,7 +8,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
     cors: {
-        origin: "*", // React development server URL
+        origin: "https://client-led.netlify.app", // React development server URL
         methods: ["GET", "POST"]
     }
 });

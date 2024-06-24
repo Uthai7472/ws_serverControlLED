@@ -1,41 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>ESP8266 WebSocket Demo</title>
+    <title>WebSocket Demo</title>
 </head>
 <body>
-    
-  <h1>ESP8266 WebSocket Data (index.html)</h1>
-  <div id="data"></div>
+    <h1>WebSocket Random Data</h1>
+    <div id="data"></div>
+    <button id="ledButton">Toggle LED</button>
+    <script>
+        const ws = new WebSocket('ws://' + window.location.host);
 
-  <script>
-    const ws = new WebSocket('ws://localhost:3000');
-
-    ws.onmessage = function(event) {
-      if (event.data instanceof Blob) {
-        const reader = new FileReader();
-        reader.onload = function() {
-          const dataDiv = document.getElementById('data');
-          dataDiv.innerHTML = reader.result;
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            document.getElementById('data').textContent = 'Random Data: ' + data.randomData;
         };
-        reader.readAsText(event.data);
-      } else {
-        const dataDiv = document.getElementById('data');
-        dataDiv.innerHTML = event.data;
-      }
-    };
 
-    ws.onopen = function() {
-      console.log('WebSocket connection opened');
-    };
-
-    ws.onclose = function() {
-      console.log('WebSocket connection closed');
-    };
-
-    ws.onerror = function(error) {
-      console.log('WebSocket error: ' + error);
-    };
-  </script>
+        const ledButton = document.getElementById('ledButton');
+        ledButton.addEventListener('click', () => {
+            ws.send(JSON.stringify({ action: 'toggleLED' }));
+        });
+    </script>
 </body>
 </html>

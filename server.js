@@ -1,40 +1,41 @@
-const express = require('express');
+const WebSocket = require('ws');
 const http = require('http');
-const socketIo = require('socket.io');
+const express = require('express');
 const axios = require('axios');
-const cors = require('cors');
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server, {
-    cors: {
-        origin: "https://client-led.netlify.app", // React development server URL
-        methods: ["GET", "POST"]
-    }
-});
+const wss = new WebSocket.Server({ server });
 
-const ESP8266_IP = 'http://192.168.1.124';
+app.use(express.static('public'));
 
-app.use(cors());
+wss.on('connection', (ws) => {
+    console.log('A user connected');
+    
+    ws.on('message', async (message) => {
+        const parsedMessage = JSON.parse(message);
 
-io.on('connection', (socket) => {
-    console.log('New client connected');
-
-    socket.on('toggleLED', async (state) => {
-        try {
-            await axios.get(`${ESP8266_IP}/led?state=${state}`);
-            io.emit('updatedLED',state);
-            console.log(`LED state changed to: ${state.toUpperCase()}`);
-        } catch (error) {
-            console.error('Error toggling LED:', error);
+        if (parsedMessage.type === 'controlLED') {
+            const { action } = parsedMessage;
+            try {
+                // Replace with your ESP8266 IP address
+                const esp8266IP = '192.168.1.124';
+                const url = `http://${esp8266IP}/control?led=${action}`;
+                await axios.get(url);
+                ws.send(JSON.stringify({ type: 'message', data: `LED ${action}` }));
+            } catch (error) {
+                console.error('Error controlling LED:', error);
+                ws.send(JSON.stringify({ type: 'error', data: 'Failed to control LED' }));
+            }
         }
     });
 
-    socket.on('disconnect', () => {
-        console.log('Client disconnected');
+    ws.on('close', () => {
+        console.log('A user disconnected');
     });
-
 });
 
-const PORT = process.env.PORT || 4000;
-server.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
+const PORT = process.env.PORT || 3001;
+server.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});

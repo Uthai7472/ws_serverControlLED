@@ -1,40 +1,56 @@
-import React, { useState, useEffect } from 'react';
-import socketIOClient from 'socket.io-client';
+import React, { useEffect, useState } from 'react';
 
-const ENDPOINT = "https://server-controlled.onrender.com";  // Ensure this matches your Node.js server URL
-
-function App() {
-    const [ledState, setLedState] = useState(false);
-    const socket = socketIOClient(ENDPOINT);
+const App = () => {
+    const [ws, setWs] = useState(null);
+    const [message, setMessage] = useState('');
 
     useEffect(() => {
-        socket.on('updateLED', (state) => {
-            setLedState(state === 'on');  // Update state based on the LED status
-        });
+        const socket = new WebSocket('ws://' + window.location.hostname + ':3001');
+        
+        socket.onopen = () => {
+            console.log('WebSocket connection opened');
+            setWs(socket);
+        };
+
+        socket.onmessage = (event) => {
+            const message = JSON.parse(event.data);
+            if (message.type === 'message') {
+                setMessage(message.data);
+            } else if (message.type === 'error') {
+                setMessage('Error: ' + message.data);
+            }
+        };
+
+        socket.onclose = () => {
+            console.log('WebSocket connection closed');
+            setWs(null);
+        };
+
+        socket.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
 
         return () => {
-            socket.disconnect();
+            socket.close();
         };
     }, []);
 
-    const toggleLED = () => {
-        const newState = ledState ? 'off' : 'on';
-
-        setLedState(!ledState);
-
-        socket.emit('toggleLED', newState);
-        console.log(ledState);
+    const controlLED = (action) => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: 'controlLED', action }));
+        } else {
+            setMessage('WebSocket is not open');
+        }
     };
 
     return (
-        <div className="App">
-            <header className="App-header">
-                <button onClick={toggleLED}>
-                    {ledState ? 'Turn ON' : 'Turn OFF'}
-                </button>
-            </header>
+        <div>
+            <h1>Control LED</h1>
+            <button onClick={() => controlLED('on')}>Turn LED On</button>
+            <button onClick={() => controlLED('off')}>Turn LED Off</button>
+            <p>{message}</p>
         </div>
     );
-}
+};
 
 export default App;
